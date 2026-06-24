@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrenador Comercial — Mykonos</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0f;
+    color: #e8e4f0;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container { max-width: 800px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 2.5rem; }
+
+  .logo-mark {
+    display: inline-flex; align-items: center; gap: 10px; margin-bottom: 1rem;
+  }
+
+  .logo-diamond {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #c9a96e, #e8d5a3);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  }
+
+  .logo-text {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.2em;
+    text-transform: uppercase; color: #c9a96e;
+  }
+
+  h1 {
+    font-size: 28px; font-weight: 300; letter-spacing: 0.05em;
+    color: #f0ece8; margin-bottom: 0.5rem;
+  }
+
+  .subtitle { font-size: 14px; color: #8a8090; letter-spacing: 0.03em; }
+
+  .card {
+    background: #13111a; border: 0.5px solid #2a2535;
+    border-radius: 16px; padding: 1.75rem; margin-bottom: 1.25rem;
+  }
+
+  .card-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.15em;
+    text-transform: uppercase; color: #c9a96e; margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .card-label::after {
+    content: ''; flex: 1; height: 0.5px; background: #2a2535;
+  }
+
+  .context-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;
+  }
+
+  .context-field { display: flex; flex-direction: column; gap: 4px; }
+
+  .context-field label { font-size: 11px; color: #8a8090; letter-spacing: 0.05em; }
+
+  .context-field select,
+  .context-field input {
+    background: #0a0a0f; border: 0.5px solid #2a2535; border-radius: 8px;
+    color: #e8e4f0; font-size: 13px; padding: 8px 12px;
+    outline: none; transition: border-color 0.2s; font-family: inherit;
+  }
+
+  .context-field select:focus,
+  .context-field input:focus { border-color: #c9a96e; }
+
+  .context-field select option { background: #13111a; }
+
+  /* ── Área de entrada de conversación ── */
+  .conv-input-area { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  /* Zona de arrastre / carga de archivos */
+  .file-drop-zone {
+    border: 1px dashed #3a3050; border-radius: 10px;
+    padding: 1.25rem; text-align: center; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: #0d0b14;
+  }
+
+  .file-drop-zone:hover, .file-drop-zone.drag-over {
+    border-color: #c9a96e; background: #1a1525;
+  }
+
+  .file-drop-zone input[type="file"] { display: none; }
+
+  .file-drop-icon { font-size: 22px; margin-bottom: 0.4rem; color: #5a5070; }
+
+  .file-drop-label {
+    font-size: 13px; color: #8a8090; line-height: 1.5;
+  }
+
+  .file-drop-label strong { color: #c9a96e; cursor: pointer; }
+
+  /* Cola de archivos */
+  .file-queue { display: none; }
+
+  .file-queue-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #8a8090; margin-bottom: 0.5rem;
+  }
+
+  .file-queue-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .file-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #0a0a0f; border: 0.5px solid #2a2535;
+    border-radius: 8px; padding: 8px 12px; font-size: 12px;
+  }
+
+  .file-item-name { color: #c8c4d0; flex: 1; }
+
+  .file-item-status {
+    font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    font-weight: 600; letter-spacing: 0.05em;
+  }
+
+  .file-item-status.pendiente { background: #1a1530; color: #9b93e8; }
+  .file-item-status.procesando { background: #2a1f0a; color: #c9a96e; }
+  .file-item-status.listo { background: #0a1f18; color: #5dcaa5; }
+  .file-item-status.error { background: #1f0a0a; color: #e87070; }
+
+  .file-item-remove {
+    background: none; border: none; color: #5a5565; cursor: pointer;
+    font-size: 16px; padding: 0 0 0 10px; line-height: 1;
+  }
+
+  .file-item-remove:hover { color: #e87070; }
+
+  /* Separador "o" */
+  .or-divider {
+    display: flex; align-items: center; gap: 0.75rem;
+    font-size: 11px; color: #3a3545; letter-spacing: 0.05em;
+  }
+
+  .or-divider::before, .or-divider::after {
+    content: ''; flex: 1; height: 0.5px; background: #2a2535;
+  }
+
+  textarea {
+    width: 100%; background: #0a0a0f; border: 0.5px solid #2a2535;
+    border-radius: 10px; color: #e8e4f0; font-size: 13px; line-height: 1.6;
+    padding: 1rem; outline: none; resize: vertical; min-height: 180px;
+    font-family: inherit; transition: border-color 0.2s;
+  }
+
+  textarea:focus { border-color: #c9a96e; }
+  textarea::placeholder { color: #3a3545; }
+
+  .hint { font-size: 12px; color: #5a5565; margin-top: 0.5rem; line-height: 1.5; }
+
+  /* Botones de acción */
+  .btn-analyze {
+    width: 100%; background: linear-gradient(135deg, #c9a96e, #b8924a);
+    border: none; border-radius: 10px; color: #0a0a0f;
+    font-size: 14px; font-weight: 600; letter-spacing: 0.08em;
+    padding: 1rem; cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s; font-family: inherit;
+  }
+
+  .btn-analyze:hover { opacity: 0.9; }
+  .btn-analyze:active { transform: scale(0.99); }
+  .btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Barra de progreso de cola */
+  .queue-progress { display: none; margin-bottom: 1.25rem; }
+
+  .queue-progress-label {
+    font-size: 12px; color: #8a8090; margin-bottom: 6px;
+    display: flex; justify-content: space-between;
+  }
+
+  .queue-progress-bar {
+    height: 3px; background: #2a2535; border-radius: 2px; overflow: hidden;
+  }
+
+  .queue-progress-fill {
+    height: 100%; background: linear-gradient(90deg, #c9a96e, #e8d5a3);
+    border-radius: 2px; transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .loading {
+    display: none; text-align: center; padding: 2rem;
+    color: #8a8090; font-size: 13px; letter-spacing: 0.05em;
+  }
+
+  .loading-dots::after {
+    content: ''; animation: dots 1.5s infinite;
+  }
+
+  @keyframes dots {
+    0% { content: ''; } 33% { content: '.'; }
+    66% { content: '..'; } 100% { content: '...'; }
+  }
+
+  .result { display: none; }
+
+  .score-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.25rem;
+  }
+
+  .score-item {
+    background: #0a0a0f; border: 0.5px solid #2a2535;
+    border-radius: 10px; padding: 1rem; text-align: center;
+  }
+
+  .score-num {
+    font-size: 28px; font-weight: 300; color: #c9a96e; line-height: 1; margin-bottom: 4px;
+  }
+
+  .score-label { font-size: 11px; color: #8a8090; letter-spacing: 0.05em; }
+
+  .correction-item {
+    background: #0a0a0f; border-left: 2px solid #2a2535;
+    border-radius: 0 8px 8px 0; padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem; font-size: 13px; line-height: 1.6; color: #c8c4d0;
+  }
+
+  .correction-item.venta { border-left-color: #c9a96e; }
+  .correction-item.redaccion { border-left-color: #534AB7; }
+  .correction-item.gramatica { border-left-color: #1D9E75; }
+  .correction-item.positivo { border-left-color: #639922; }
+
+  .tag {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 4px; margin-bottom: 4px;
+  }
+
+  .tag.venta { background: #2a1f0a; color: #c9a96e; }
+  .tag.redaccion { background: #1a1530; color: #9b93e8; }
+  .tag.gramatica { background: #0a1f18; color: #5dcaa5; }
+  .tag.positivo { background: #111a0a; color: #97c459; }
+
+  .original-text {
+    color: #5a5565; text-decoration: line-through;
+    font-size: 12px; margin-bottom: 2px;
+  }
+
+  .corrected-text { color: #e8e4f0; font-size: 13px; }
+
+  .adn-box {
+    background: linear-gradient(135deg, #1a1520, #130f1a);
+    border: 0.5px solid #3a2f50; border-radius: 10px;
+    padding: 1rem; font-size: 13px; line-height: 1.7;
+    color: #c8c4d0; white-space: pre-wrap;
+  }
+
+  .btn-copy {
+    background: transparent; border: 0.5px solid #2a2535;
+    border-radius: 8px; color: #8a8090; font-size: 12px;
+    padding: 6px 14px; cursor: pointer; margin-top: 0.75rem;
+    font-family: inherit; transition: border-color 0.2s, color 0.2s;
+  }
+
+  .btn-copy:hover { border-color: #c9a96e; color: #c9a96e; }
+
+  .btn-nueva {
+    width: 100%; background: transparent; border: 0.5px solid #2a2535;
+    border-radius: 10px; color: #8a8090; font-size: 13px;
+    padding: 0.875rem; cursor: pointer; margin-top: 0.5rem;
+    font-family: inherit; transition: border-color 0.2s, color 0.2s;
+  }
+
+  .btn-nueva:hover { border-color: #c9a96e; color: #c9a96e; }
+
+  /* Encabezado de resultado con nombre de archivo */
+  .result-file-header {
+    font-size: 11px; color: #5a5565; margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 600px) {
+    .context-grid { grid-template-columns: 1fr; }
+    .score-row { grid-template-columns: repeat(3, 1fr); }
+    h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo-mark">
+      <div class="logo-diamond"></div>
+      <span class="logo-text">Mykonos</span>
+    </div>
+    <h1>Entrenador Comercial</h1>
+    <p class="subtitle">Análisis y mejora de tus conversaciones de venta</p>
+  </div>
+
+  <div id="form-section">
+    <div class="card">
+      <div class="card-label">Contexto de la conversación</div>
+      <div class="context-grid">
+        <div class="context-field">
+          <label>Servicio ofrecido</label>
+          <select id="servicio">
+            <option value="matrimonio">Matrimonio Mykonos</option>
+            <option value="graduacion">Graduación Mykonos</option>
+            <option value="evento">Evento corporativo</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="context-field">
+          <label>Etapa de la conversación</label>
+          <select id="etapa">
+            <option value="primer-contacto">Primer contacto</option>
+            <option value="cotizacion">Cotización</option>
+            <option value="seguimiento">Seguimiento</option>
+            <option value="cierre">Cierre</option>
+          </select>
+        </div>
+        <div class="context-field">
+          <label>¿Se cerró la venta?</label>
+          <select id="resultado">
+            <option value="no-definido">No definido aún</option>
+            <option value="si">Sí, se cerró</option>
+            <option value="no">No se cerró</option>
+            <option value="pendiente">Quedó pendiente</option>
+          </select>
+        </div>
+        <div class="context-field">
+          <label>Nombre del cliente (opcional)</label>
+          <input type="text" id="nombre-cliente" placeholder="ej: María González">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Conversación de WhatsApp</div>
+
+      <div class="conv-input-area">
+
+        <!-- Zona de carga de archivos -->
+        <div class="file-drop-zone" id="file-drop-zone" onclick="document.getElementById('file-input').click()">
+          <input type="file" id="file-input" accept=".txt,.zip" multiple>
+          <div class="file-drop-icon">📂</div>
+          <div class="file-drop-label">
+            <strong>Selecciona archivos .txt</strong> o arrástralos aquí<br>
+            <span style="font-size:12px; color:#5a5565;">Puedes cargar varios archivos a la vez para analizarlos en cola</span>
+          </div>
+        </div>
+
+        <!-- Cola de archivos cargados -->
+        <div class="file-queue" id="file-queue">
+          <div class="file-queue-title">Archivos en cola</div>
+          <div class="file-queue-list" id="file-queue-list"></div>
+        </div>
+
+        <!-- Separador -->
+        <div class="or-divider">o pega el texto directamente</div>
+
+        <!-- Textarea manual -->
+        <textarea id="conversacion" placeholder="Pega aquí la conversación exportada de WhatsApp...
+
+Ejemplo:
+Pedro: Hola buenas tardes, vi tu consulta sobre matrimonios
+Cliente: Hola sí quería saber los precios
+Pedro: Claro, le cuento que manejamos distintos paquetes..."></textarea>
+
+        <p class="hint">Exporta desde WhatsApp Business → Chat → Más opciones → Exportar chat (sin medios). Cada chat exportado genera un archivo .txt que puedes cargar aquí.</p>
+      </div>
+    </div>
+
+    <!-- Barra de progreso de cola -->
+    <div class="queue-progress" id="queue-progress">
+      <div class="queue-progress-label">
+        <span id="queue-progress-text">Procesando cola...</span>
+        <span id="queue-progress-count">0 / 0</span>
+      </div>
+      <div class="queue-progress-bar">
+        <div class="queue-progress-fill" id="queue-progress-fill"></div>
+      </div>
+    </div>
+
+    <button class="btn-analyze" id="btn-analizar" onclick="iniciarAnalisis()">Analizar conversación</button>
+  </div>
+
+  <div class="loading" id="loading">
+    <div style="font-size: 20px; margin-bottom: 0.5rem;">◆</div>
+    <span class="loading-dots">Analizando tu conversación</span>
+  </div>
+
+  <div class="result" id="resultado-section">
+
+    <div class="result-file-header" id="result-file-header"></div>
+
+    <div class="card">
+      <div class="card-label">Resumen del análisis</div>
+      <div class="score-row">
+        <div class="score-item">
+          <div class="score-num" id="score-venta">—</div>
+          <div class="score-label">Técnica de venta</div>
+        </div>
+        <div class="score-item">
+          <div class="score-num" id="score-redaccion">—</div>
+          <div class="score-label">Redacción</div>
+        </div>
+        <div class="score-item">
+          <div class="score-num" id="score-gramatica">—</div>
+          <div class="score-label">Gramática</div>
+        </div>
+      </div>
+      <div id="resumen-texto" style="font-size: 13px; line-height: 1.7; color: #c8c4d0;"></div>
+    </div>
+
+    <div class="card" id="section-positivos" style="display:none;">
+      <div class="card-label">Lo que hiciste bien</div>
+      <div id="positivos-content"></div>
+    </div>
+
+    <div class="card" id="section-venta" style="display:none;">
+      <div class="card-label">Técnica de venta — mejoras</div>
+      <div id="venta-content"></div>
+    </div>
+
+    <div class="card" id="section-redaccion" style="display:none;">
+      <div class="card-label">Redacción — mejoras</div>
+      <div id="redaccion-content"></div>
+    </div>
+
+    <div class="card" id="section-gramatica" style="display:none;">
+      <div class="card-label">Gramática y ortografía — correcciones</div>
+      <div id="gramatica-content"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Semilla de ADN comercial</div>
+      <p style="font-size: 12px; color: #5a5565; margin-bottom: 0.75rem;">Patrones identificados en tu estilo de venta. Con el tiempo esto construirá tu perfil comercial único.</p>
+      <div class="adn-box" id="adn-content"></div>
+      <button class="btn-copy" onclick="copiarADN()">Copiar ADN</button>
+    </div>
+
+    <button class="btn-nueva" id="btn-siguiente" onclick="siguienteONueva()">Analizar otra conversación</button>
+
+  </div>
+
+</div>
+
+<script>
+// ── Estado global ──────────────────────────────────────────
+let fileQueue = [];        // { file, name, status, content }
+let queueIndex = 0;        // archivo actual en proceso
+let modoQueue = false;     // true cuando hay archivos cargados
+
+const SYSTEM_PROMPT = `Eres un coach comercial experto en ventas de eventos premium, con profundo conocimiento en:
+- Técnicas de PNL aplicadas a ventas
+- Las 6 R de Pablo Fernández (Retención, Rentabilidad, Referidos, Recuperación, Reactivación, Relación)
+- Los principios de influencia de Robert Cialdini (Reciprocidad, Compromiso, Prueba social, Autoridad, Simpatía, Escasez)
+- Ventas emocionales de experiencias premium tipo Mykonos (matrimonios y graduaciones de alto impacto emocional)
+
+Tu función es analizar conversaciones de WhatsApp del agente comercial Pedro y entregarle feedback preciso, constructivo y accionable.
+
+IMPORTANTE:
+- Mantén siempre el tono y voz natural de Pedro — no lo conviertas en alguien diferente
+- Las correcciones deben mejorar SU estilo, no reemplazarlo
+- Sé directo y específico — nada genérico
+- Valora lo que Pedro hace bien antes de corregir
+- Enfócate en el impacto emocional del cliente, no solo en la técnica
+
+Responde ÚNICAMENTE en formato JSON válido con esta estructura exacta (sin bloques de código, sin texto adicional):
+{
+  "scores": {
+    "venta": número del 1 al 10,
+    "redaccion": número del 1 al 10,
+    "gramatica": número del 1 al 10
+  },
+  "resumen": "párrafo breve con evaluación general de la conversación",
+  "positivos": [
+    {"texto": "descripción de algo que Pedro hizo bien"}
+  ],
+  "venta": [
+    {"original": "texto original de Pedro", "corregido": "versión mejorada", "explicacion": "por qué es mejor"}
+  ],
+  "redaccion": [
+    {"original": "texto original", "corregido": "versión mejorada", "explicacion": "por qué es mejor"}
+  ],
+  "gramatica": [
+    {"original": "texto con error", "corregido": "texto corregido", "explicacion": "qué se corrigió"}
+  ],
+  "adn": "párrafo que describe los patrones de venta únicos de Pedro identificados en esta conversación"
+}`;
+
+// ── Manejo de archivos ─────────────────────────────────────
+const fileInput = document.getElementById('file-input');
+const dropZone = document.getElementById('file-drop-zone');
+
+fileInput.addEventListener('change', e => agregarArchivos(e.target.files));
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault(); dropZone.classList.add('drag-over');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  agregarArchivos(e.dataTransfer.files);
+});
+
+function agregarArchivos(files) {
+  const nuevos = Array.from(files).filter(f => f.name.endsWith('.txt'));
+  if (nuevos.length === 0) {
+    alert('Solo se aceptan archivos .txt exportados desde WhatsApp.');
+    return;
+  }
+  nuevos.forEach(f => {
+    fileQueue.push({ file: f, name: f.name, status: 'pendiente', content: null });
+  });
+  renderQueue();
+}
+
+function renderQueue() {
+  const queueEl = document.getElementById('file-queue');
+  const listEl = document.getElementById('file-queue-list');
+
+  if (fileQueue.length === 0) {
+    queueEl.style.display = 'none';
+    return;
+  }
+
+  queueEl.style.display = 'block';
+  modoQueue = true;
+
+  listEl.innerHTML = fileQueue.map((item, i) => `
+    <div class="file-item" id="file-item-${i}">
+      <span class="file-item-name">📄 ${item.name}</span>
+      <span class="file-item-status ${item.status}" id="file-status-${i}">
+        ${{ pendiente: 'Pendiente', procesando: 'Analizando...', listo: 'Listo ✓', error: 'Error' }[item.status]}
+      </span>
+      ${item.status === 'pendiente' ? `<button class="file-item-remove" onclick="quitarArchivo(${i})">×</button>` : ''}
+    </div>
+  `).join('');
+
+  document.getElementById('btn-analizar').textContent =
+    fileQueue.length === 1 ? 'Analizar conversación' : `Analizar ${fileQueue.length} conversaciones`;
+}
+
+function quitarArchivo(i) {
+  fileQueue.splice(i, 1);
+  if (fileQueue.length === 0) modoQueue = false;
+  renderQueue();
+  if (fileQueue.length === 0) {
+    document.getElementById('btn-analizar').textContent = 'Analizar conversación';
+  }
+}
+
+// ── Leer archivo como texto ────────────────────────────────
+function leerArchivo(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+
+// ── Lógica principal ───────────────────────────────────────
+async function iniciarAnalisis() {
+  if (modoQueue && fileQueue.length > 0) {
+    await procesarCola();
+  } else {
+    await analizarTextoManual();
+  }
+}
+
+async function analizarTextoManual() {
+  const conversacion = document.getElementById('conversacion').value.trim();
+  if (!conversacion || conversacion.length < 50) {
+    alert('Por favor pega una conversación más completa para poder analizarla.');
+    return;
+  }
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('resultado-section').style.display = 'none';
+
+  try {
+    const analisis = await llamarAPI(conversacion);
+    document.getElementById('result-file-header').textContent = '';
+    mostrarResultado(analisis);
+  } catch (error) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('form-section').style.display = 'block';
+    alert('Hubo un error al analizar. Por favor intenta nuevamente.');
+    console.error(error);
+  }
+}
+
+async function procesarCola() {
+  queueIndex = 0;
+
+  // Leer todos los archivos primero
+  for (let i = 0; i < fileQueue.length; i++) {
+    try {
+      fileQueue[i].content = await leerArchivo(fileQueue[i].file);
+    } catch {
+      fileQueue[i].status = 'error';
+    }
+  }
+
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('queue-progress').style.display = 'none';
+
+  await procesarSiguiente();
+}
+
+async function procesarSiguiente() {
+  // Buscar el próximo archivo pendiente
+  while (queueIndex < fileQueue.length && fileQueue[queueIndex].status !== 'pendiente') {
+    queueIndex++;
+  }
+
+  if (queueIndex >= fileQueue.length) {
+    // Cola terminada — volver al formulario
+    modoQueue = false;
+    fileQueue = [];
+    queueIndex = 0;
+    document.getElementById('file-queue').style.display = 'none';
+    document.getElementById('conversacion').value = '';
+    document.getElementById('btn-analizar').textContent = 'Analizar conversación';
+    document.getElementById('form-section').style.display = 'block';
+    fileInput.value = '';
+    return;
+  }
+
+  const item = fileQueue[queueIndex];
+  item.status = 'procesando';
+  renderQueue();
+
+  // Mostrar loading
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('resultado-section').style.display = 'none';
+
+  try {
+    const analisis = await llamarAPI(item.content);
+    item.status = 'listo';
+    renderQueue();
+
+    document.getElementById('result-file-header').textContent =
+      `Archivo ${queueIndex + 1} de ${fileQueue.length}: ${item.name}`;
+
+    const pendientes = fileQueue.filter(f => f.status === 'pendiente').length;
+    document.getElementById('btn-siguiente').textContent =
+      pendientes > 0 ? `Siguiente conversación (${pendientes} restante${pendientes > 1 ? 's' : ''})` : 'Finalizar';
+
+    mostrarResultado(analisis);
+
+  } catch (error) {
+    item.status = 'error';
+    renderQueue();
+    document.getElementById('loading').style.display = 'none';
+
+    const pendientes = fileQueue.filter(f => f.status === 'pendiente').length;
+    if (pendientes > 0) {
+      queueIndex++;
+      await procesarSiguiente();
+    } else {
+      document.getElementById('form-section').style.display = 'block';
+    }
+    console.error(error);
+  }
+}
+
+// ── Llamada a la API ───────────────────────────────────────
+async function llamarAPI(conversacion) {
+  const servicio = document.getElementById('servicio').value;
+  const etapa = document.getElementById('etapa').value;
+  const resultado = document.getElementById('resultado').value;
+  const nombreCliente = document.getElementById('nombre-cliente').value;
+
+  const servicioTexto = { matrimonio: 'Matrimonio Mykonos', graduacion: 'Graduación Mykonos', evento: 'Evento corporativo', otro: 'Otro servicio' };
+  const etapaTexto = { 'primer-contacto': 'Primer contacto', cotizacion: 'Cotización', seguimiento: 'Seguimiento', cierre: 'Cierre' };
+  const resultadoTexto = { 'no-definido': 'No definido aún', si: 'Sí se cerró', no: 'No se cerró', pendiente: 'Quedó pendiente' };
+
+  const contexto = `Servicio: ${servicioTexto[servicio]}
+Etapa: ${etapaTexto[etapa]}
+Resultado: ${resultadoTexto[resultado]}
+${nombreCliente ? 'Cliente: ' + nombreCliente : ''}
+
+CONVERSACIÓN:
+${conversacion}`;
+
+  const response = await fetch('http://76.13.168.94:3012/analizar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4000,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: contexto }]
+    })
+  });
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error?.message || `HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  const texto = data.content[0].text;
+  const clean = texto.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+// ── Mostrar resultado ──────────────────────────────────────
+function mostrarResultado(data) {
+  document.getElementById('loading').style.display = 'none';
+
+  document.getElementById('score-venta').textContent = data.scores.venta + '/10';
+  document.getElementById('score-redaccion').textContent = data.scores.redaccion + '/10';
+  document.getElementById('score-gramatica').textContent = data.scores.gramatica + '/10';
+  document.getElementById('resumen-texto').textContent = data.resumen;
+
+  // Ocultar secciones
+  ['positivos','venta','redaccion','gramatica'].forEach(s => {
+    document.getElementById('section-' + s).style.display = 'none';
+  });
+
+  if (data.positivos && data.positivos.length > 0) {
+    document.getElementById('section-positivos').style.display = 'block';
+    document.getElementById('positivos-content').innerHTML = data.positivos.map(p =>
+      `<div class="correction-item positivo"><span class="tag positivo">Fortaleza</span><br><span class="corrected-text">${p.texto}</span></div>`
+    ).join('');
+  }
+
+  if (data.venta && data.venta.length > 0) {
+    document.getElementById('section-venta').style.display = 'block';
+    document.getElementById('venta-content').innerHTML = data.venta.map(v =>
+      `<div class="correction-item venta">
+        <span class="tag venta">Venta</span><br>
+        <div class="original-text">"${v.original}"</div>
+        <div class="corrected-text">"${v.corregido}"</div>
+        <div style="font-size:12px;color:#8a8090;margin-top:4px;">${v.explicacion}</div>
+      </div>`
+    ).join('');
+  }
+
+  if (data.redaccion && data.redaccion.length > 0) {
+    document.getElementById('section-redaccion').style.display = 'block';
+    document.getElementById('redaccion-content').innerHTML = data.redaccion.map(r =>
+      `<div class="correction-item redaccion">
+        <span class="tag redaccion">Redacción</span><br>
+        <div class="original-text">"${r.original}"</div>
+        <div class="corrected-text">"${r.corregido}"</div>
+        <div style="font-size:12px;color:#8a8090;margin-top:4px;">${r.explicacion}</div>
+      </div>`
+    ).join('');
+  }
+
+  if (data.gramatica && data.gramatica.length > 0) {
+    document.getElementById('section-gramatica').style.display = 'block';
+    document.getElementById('gramatica-content').innerHTML = data.gramatica.map(g =>
+      `<div class="correction-item gramatica">
+        <span class="tag gramatica">Gramática</span><br>
+        <div class="original-text">"${g.original}"</div>
+        <div class="corrected-text">"${g.corregido}"</div>
+        <div style="font-size:12px;color:#8a8090;margin-top:4px;">${g.explicacion}</div>
+      </div>`
+    ).join('');
+  }
+
+  document.getElementById('adn-content').textContent = data.adn;
+  document.getElementById('resultado-section').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+// ── Siguiente / Nueva conversación ─────────────────────────
+function siguienteONueva() {
+  document.getElementById('resultado-section').style.display = 'none';
+
+  if (modoQueue && fileQueue.some(f => f.status === 'pendiente')) {
+    queueIndex++;
+    procesarSiguiente();
+  } else {
+    nuevaConversacion();
+  }
+}
+
+function nuevaConversacion() {
+  modoQueue = false;
+  fileQueue = [];
+  queueIndex = 0;
+  document.getElementById('resultado-section').style.display = 'none';
+  document.getElementById('conversacion').value = '';
+  document.getElementById('nombre-cliente').value = '';
+  document.getElementById('file-queue').style.display = 'none';
+  document.getElementById('file-queue-list').innerHTML = '';
+  document.getElementById('btn-analizar').textContent = 'Analizar conversación';
+  document.getElementById('btn-siguiente').textContent = 'Analizar otra conversación';
+  document.getElementById('form-section').style.display = 'block';
+  fileInput.value = '';
+  window.scrollTo(0, 0);
+}
+
+function copiarADN() {
+  const texto = document.getElementById('adn-content').textContent;
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = 'Copiado';
+    setTimeout(() => btn.textContent = 'Copiar ADN', 2000);
+  });
+}
+</script>
+</body>
+</html>
